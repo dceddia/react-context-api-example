@@ -2,49 +2,61 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-const UserAvatar = ({ user, size }) => (
-  <img
-    className={`user-avatar ${size || ''}`}
-    alt="user avatar"
-    src={user.avatar}
-  />
+const UserContext = React.createContext();
+// { Provider, Consumer }
+const UserAvatar = ({ size }) => (
+  <UserContext.Consumer>
+    {user => (
+      <img
+        className={`user-avatar ${size || ''}`}
+        alt="user avatar"
+        src={user.avatar}
+      />
+    )}
+  </UserContext.Consumer>
 );
 
-const UserStats = ({ user }) => (
-  <div className="user-stats">
-    <div>
-      <UserAvatar user={user} />
-      {user.name}
-    </div>
-    <div className="stats">
-      <div>{user.followers} Followers</div>
-      <div>Following {user.following}</div>
-    </div>
-  </div>
+const UserStats = () => (
+  <UserContext.Consumer>
+    {user => (
+      <div className="user-stats">
+        <div>
+          <UserAvatar user={user} />
+          {user.name}
+        </div>
+        <div className="stats">
+          <div>{user.followers} Followers</div>
+          <div>Following {user.following}</div>
+        </div>
+      </div>
+    )}
+  </UserContext.Consumer>
 );
 
-const Nav = ({ user }) => (
+const Nav = () => (
   <div className="nav">
-    <UserAvatar user={user} size="small" />
+    <UserAvatar size="small" />
   </div>
 );
 
-const Content = () => <div className="content">main content here</div>;
+const Content = () => (
+  <div className="content">main content here</div>
+);
 
-const Sidebar = ({ user }) => (
+const Sidebar = () => (
   <div className="sidebar">
-    <UserStats user={user} />
+    <UserStats />
   </div>
 );
 
-const Body = ({ user }) => (
+const Body = () => (
   <div className="body">
-    <Sidebar user={user} />
+    <Sidebar />
     <Content />
   </div>
 );
 
-class App extends React.Component {
+class UserProvider extends React.Component {
   state = {
     user: {
       avatar:
@@ -59,12 +71,23 @@ class App extends React.Component {
     const { user } = this.state;
 
     return (
-      <div className="app">
-        <Nav user={user} />
-        <Body user={user} />
-      </div>
+      <UserContext.Provider value={user}>
+        {this.props.children}
+      </UserContext.Provider>
     );
   }
 }
 
-ReactDOM.render(<App />, document.querySelector('#root'));
+const App = () => (
+  <div className="app">
+    <Nav />
+    <Body />
+  </div>
+);
+
+ReactDOM.render(
+  <UserProvider>
+    <App />
+  </UserProvider>,
+  document.querySelector('#root')
+);
